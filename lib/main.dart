@@ -25,18 +25,33 @@ class WebViewScreen extends StatefulWidget {
   const WebViewScreen({super.key});
 
   @override
-  _WebViewScreenState createState() => _WebViewScreenState();
+  State<WebViewScreen> createState() => _WebViewScreenState();
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
   late final WebViewController _controller;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _controller = WebViewController()
-      ..loadRequest(Uri.parse('https://joyful-kids-events.lovable.app'))
-      ..setJavaScriptMode(JavaScriptMode.unrestricted);
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) {
+            setState(() {
+              _isLoading = true;
+            });
+          },
+          onPageFinished: (_) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse('https://joyful-kids-events.lovable.app'));
   }
 
   @override
@@ -45,7 +60,15 @@ class _WebViewScreenState extends State<WebViewScreen> {
       appBar: AppBar(
         title: const Text('Joyful Kids Events'),
       ),
-      body: WebViewWidget(controller: _controller),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
+      ),
     );
   }
 }
